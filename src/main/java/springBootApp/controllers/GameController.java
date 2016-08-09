@@ -13,6 +13,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 @Controller
+@RequestMapping(value="/games/")
 public class GameController {
 
     @Autowired
@@ -21,19 +22,25 @@ public class GameController {
     @Autowired
     private CategoryDAO categoryDAO;
 
-    @RequestMapping(value="/games/viewAllGames")
+    @RequestMapping(value="viewAllGames")
     public String viewAllGames(ModelMap model) {
         model.addAttribute("games",gameDAO.findAll());
         return "games/viewAllGames";
     }
 
-    @RequestMapping(value="/games/findGame")
+    @RequestMapping(value="findGame")
     public String findGame() {
         return "games/findGame";
     }
 
-    @RequestMapping(value="/games/viewGame/{gameId}")
-    public String viewGame(@PathVariable("gameId") Long gameId, ModelMap model) {
+    @RequestMapping(value="viewGamesSearch")
+    public String viewGamesSearch(String searchStr, ModelMap model) {
+        model.addAttribute("games",gameDAO.findByNameStartsWith(searchStr));
+        return "games/viewAllGames";
+    }
+
+    @RequestMapping(value="viewGame")
+    public String viewGame(Long gameId, ModelMap model) {
         Game game = gameDAO.findOne(gameId);
         Category category = categoryDAO.findOne(game.getCategoryId());
         model.addAttribute("category",category);
@@ -41,7 +48,7 @@ public class GameController {
         return "games/viewGame";
     }
 
-    @RequestMapping(value="/games/addGame")
+    @RequestMapping(value="addGame")
     public String addGame(ModelMap model) {
         Game game = new Game();
         model.addAttribute("game",game);
@@ -50,15 +57,20 @@ public class GameController {
         return "games/addGame";
     }
 
-
-    @RequestMapping(value="/games/saveNewGame")
-    public String saveNewGame(@ModelAttribute("game") Game game) {
+    @RequestMapping(value="saveNewGame")
+    public String saveNewGame(Game game) {
         if(game != null) {
             gameDAO.save(game);
         } else {
             System.out.println("ERROR: did NOT save new game, game was NULL!");
         }
         return "redirect:/games/viewAllGames";
+    }
+
+    @RequestMapping(value="viewGamesInCategory")
+    public String viewGamesInCategory(Long categoryId, ModelMap model) {
+        model.addAttribute("games",gameDAO.findByCategoryId(categoryId));
+        return "games/viewAllGames";
     }
 
     private Map<String, String> getCategoryIdsAndNames() {
